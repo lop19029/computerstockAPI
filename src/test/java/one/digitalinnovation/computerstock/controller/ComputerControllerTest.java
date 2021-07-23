@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
+import java.util.Collections;
+
 import static one.digitalinnovation.computerstock.utils.JsonConvertionUtils.asJsonString;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.when;
@@ -111,4 +113,34 @@ public class ComputerControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void whenGETListWithComputersIsCalledThenOkStatusIsReturned() throws Exception {
+        // given
+        ComputerDTO computerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+
+        //when
+        when(computerService.listAll()).thenReturn(Collections.singletonList(computerDTO));
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPUTER_API_URL_PATH)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name", is(computerDTO.getName())))
+                .andExpect(jsonPath("$[0].brand", is(computerDTO.getBrand())))
+                .andExpect(jsonPath("$[0].type", is(computerDTO.getType().toString())));
+    }
+
+    @Test
+    void whenGETListWithoutComputersIsCalledThenOkStatusIsReturned() throws Exception {
+        // given
+        ComputerDTO computerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+
+        //when
+        when(computerService.listAll()).thenReturn(Collections.singletonList(computerDTO));
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPUTER_API_URL_PATH)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 }

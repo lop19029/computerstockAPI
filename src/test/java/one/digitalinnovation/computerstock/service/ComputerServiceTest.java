@@ -13,11 +13,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
@@ -90,6 +92,33 @@ public class ComputerServiceTest {
 
         // then
         assertThrows(ComputerNotFoundException.class, () -> computerService.findByName(expectedFoundComputerDTO.getName()));
+    }
+
+    @Test
+    void whenListComputerIsCalledThenReturnAListOfComputers() {
+        // given
+        ComputerDTO expectedFoundComputerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+        Computer expectedFoundComputer = computerMapper.toModel(expectedFoundComputerDTO);
+
+        //when
+        when(computerRepository.findAll()).thenReturn(Collections.singletonList(expectedFoundComputer));
+
+        //then
+        List<ComputerDTO> foundListComputersDTO = computerService.listAll();
+
+        assertThat(foundListComputersDTO, is(not(empty())));
+        assertThat(foundListComputersDTO.get(0), is(equalTo(expectedFoundComputerDTO)));
+    }
+
+    @Test
+    void whenListComputerIsCalledThenReturnAnEmptyListOfComputers() {
+        //when
+        when(computerRepository.findAll()).thenReturn(Collections.EMPTY_LIST);
+
+        //then
+        List<ComputerDTO> foundListComputersDTO = computerService.listAll();
+
+        assertThat(foundListComputersDTO, is(empty()));
     }
 
 }
