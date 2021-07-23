@@ -2,8 +2,10 @@ package one.digitalinnovation.computerstock.controller;
 
 import lombok.AllArgsConstructor;
 import one.digitalinnovation.computerstock.dto.ComputerDTO;
+import one.digitalinnovation.computerstock.dto.QuantityDTO;
 import one.digitalinnovation.computerstock.exception.ComputerAlreadyRegisteredException;
 import one.digitalinnovation.computerstock.exception.ComputerNotFoundException;
+import one.digitalinnovation.computerstock.exception.ComputerStockExceededException;
 import one.digitalinnovation.computerstock.service.ComputerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,11 @@ public class ComputerController implements ComputerControllerDocs {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteById(@PathVariable Long id) throws ComputerNotFoundException {
         computerService.deleteById(id);
+    }
+
+    @PatchMapping("/{id}/increment")
+    public ComputerDTO increment(@PathVariable Long id, @RequestBody @Valid QuantityDTO quantityDTO) throws ComputerNotFoundException, ComputerStockExceededException {
+        return computerService.increment(id, quantityDTO.getQuantity());
     }
 
 }

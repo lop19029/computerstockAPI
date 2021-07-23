@@ -5,6 +5,7 @@ import one.digitalinnovation.computerstock.dto.ComputerDTO;
 import one.digitalinnovation.computerstock.entity.Computer;
 import one.digitalinnovation.computerstock.exception.ComputerAlreadyRegisteredException;
 import one.digitalinnovation.computerstock.exception.ComputerNotFoundException;
+import one.digitalinnovation.computerstock.exception.ComputerStockExceededException;
 import one.digitalinnovation.computerstock.mapper.ComputerMapper;
 import one.digitalinnovation.computerstock.repository.ComputerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,5 +57,16 @@ public class ComputerService {
     private Computer verifyIfExists(Long id) throws ComputerNotFoundException {
         return computerRepository.findById(id)
                 .orElseThrow(() -> new ComputerNotFoundException(id));
+    }
+
+    public ComputerDTO increment(Long id, int quantityToIncrement) throws ComputerNotFoundException, ComputerStockExceededException {
+        Computer computerToIncrementStock = verifyIfExists(id);
+        int quantityAfterIncrement = quantityToIncrement + computerToIncrementStock.getQuantity();
+        if (quantityAfterIncrement <= computerToIncrementStock.getMax()) {
+            computerToIncrementStock.setQuantity(computerToIncrementStock.getQuantity() + quantityToIncrement);
+            Computer incrementedComputerStock = computerRepository.save(computerToIncrementStock);
+            return computerMapper.toDTO(incrementedComputerStock);
+        }
+        throw new ComputerStockExceededException(id, quantityToIncrement);
     }
 }

@@ -2,6 +2,7 @@ package one.digitalinnovation.computerstock.controller;
 
 import one.digitalinnovation.computerstock.builder.ComputerDTOBuilder;
 import one.digitalinnovation.computerstock.dto.ComputerDTO;
+import one.digitalinnovation.computerstock.dto.QuantityDTO;
 import one.digitalinnovation.computerstock.exception.ComputerNotFoundException;
 import one.digitalinnovation.computerstock.service.ComputerService;
 import org.junit.jupiter.api.BeforeEach;
@@ -167,5 +168,25 @@ public class ComputerControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete(COMPUTER_API_URL_PATH + "/" + INVALID_COMPUTER_ID)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void whenPATCHIsCalledToIncrementDiscountThenOKStatusIsReturned() throws Exception {
+        QuantityDTO quantityDTO = QuantityDTO.builder()
+                .quantity(10)
+                .build();
+
+        ComputerDTO computerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+        computerDTO.setQuantity(computerDTO.getQuantity() + quantityDTO.getQuantity());
+
+        when(computerService.increment(VALID_COMPUTER_ID, quantityDTO.getQuantity())).thenReturn(computerDTO);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(COMPUTER_API_URL_PATH + "/" + VALID_COMPUTER_ID + COMPUTER_API_SUBPATH_INCREMENT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(quantityDTO))).andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(computerDTO.getName())))
+                .andExpect(jsonPath("$.brand", is(computerDTO.getBrand())))
+                .andExpect(jsonPath("$.type", is(computerDTO.getType().toString())))
+                .andExpect(jsonPath("$.quantity", is(computerDTO.getQuantity())));
     }
 }
