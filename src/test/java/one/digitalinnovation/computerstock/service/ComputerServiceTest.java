@@ -4,6 +4,7 @@ import one.digitalinnovation.computerstock.builder.ComputerDTOBuilder;
 import one.digitalinnovation.computerstock.dto.ComputerDTO;
 import one.digitalinnovation.computerstock.entity.Computer;
 import one.digitalinnovation.computerstock.exception.ComputerAlreadyRegisteredException;
+import one.digitalinnovation.computerstock.exception.ComputerNotFoundException;
 import one.digitalinnovation.computerstock.mapper.ComputerMapper;
 import one.digitalinnovation.computerstock.repository.ComputerRepository;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,33 @@ public class ComputerServiceTest {
 
         // then
         assertThrows(ComputerAlreadyRegisteredException.class, () -> computerService.createComputer(expectedComputerDTO));
+    }
+
+    @Test
+    void whenValidComputerNameIsGivenThenReturnAComputer() throws ComputerNotFoundException {
+        // given
+        ComputerDTO expectedFoundComputerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+        Computer expectedFoundComputer = computerMapper.toModel(expectedFoundComputerDTO);
+
+        // when
+        when(computerRepository.findByName(expectedFoundComputer.getName())).thenReturn(Optional.of(expectedFoundComputer));
+
+        // then
+        ComputerDTO foundComputerDTO = computerService.findByName(expectedFoundComputerDTO.getName());
+
+        assertThat(foundComputerDTO, is(equalTo(expectedFoundComputerDTO)));
+    }
+
+    @Test
+    void whenNotRegisteredComputerNameIsGivenThenThrowAnException() {
+        // given
+        ComputerDTO expectedFoundComputerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+
+        // when
+        when(computerRepository.findByName(expectedFoundComputerDTO.getName())).thenReturn(Optional.empty());
+
+        // then
+        assertThrows(ComputerNotFoundException.class, () -> computerService.findByName(expectedFoundComputerDTO.getName()));
     }
 
 }

@@ -2,6 +2,7 @@ package one.digitalinnovation.computerstock.controller;
 
 import one.digitalinnovation.computerstock.builder.ComputerDTOBuilder;
 import one.digitalinnovation.computerstock.dto.ComputerDTO;
+import one.digitalinnovation.computerstock.exception.ComputerNotFoundException;
 import one.digitalinnovation.computerstock.service.ComputerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 
@@ -76,6 +78,37 @@ public class ComputerControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(computerDTO)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void whenGETIsCalledWithValidNameThenOkStatusIsReturned() throws Exception {
+        // given
+        ComputerDTO computerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+
+        //when
+        when(computerService.findByName(computerDTO.getName())).thenReturn(computerDTO);
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPUTER_API_URL_PATH + "/" + computerDTO.getName())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(computerDTO.getName())))
+                .andExpect(jsonPath("$.brand", is(computerDTO.getBrand())))
+                .andExpect(jsonPath("$.type", is(computerDTO.getType().toString())));
+    }
+
+    @Test
+    void whenGETIsCalledWithoutRegisteredNameThenNotFoundStatusIsReturned() throws Exception {
+        // given
+        ComputerDTO computerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+
+        //when
+        when(computerService.findByName(computerDTO.getName())).thenThrow(ComputerNotFoundException.class);
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.get(COMPUTER_API_URL_PATH + "/" + computerDTO.getName())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
 }
