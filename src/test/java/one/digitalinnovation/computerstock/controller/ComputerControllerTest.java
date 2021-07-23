@@ -21,7 +21,7 @@ import java.util.Collections;
 
 import static one.digitalinnovation.computerstock.utils.JsonConvertionUtils.asJsonString;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -142,5 +142,30 @@ public class ComputerControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get(COMPUTER_API_URL_PATH)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void whenDELETEIsCalledWithValidIdThenNoContentStatusIsReturned() throws Exception {
+        // given
+        ComputerDTO computerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+
+        //when
+        doNothing().when(computerService).deleteById(computerDTO.getId());
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.delete(COMPUTER_API_URL_PATH + "/" + computerDTO.getId())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void whenDELETEIsCalledWithInvalidIdThenNotFoundStatusIsReturned() throws Exception {
+        //when
+        doThrow(ComputerNotFoundException.class).when(computerService).deleteById(INVALID_COMPUTER_ID);
+
+        // then
+        mockMvc.perform(MockMvcRequestBuilders.delete(COMPUTER_API_URL_PATH + "/" + INVALID_COMPUTER_ID)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }

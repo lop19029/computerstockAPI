@@ -21,7 +21,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 public class ComputerServiceTest {
@@ -119,6 +120,23 @@ public class ComputerServiceTest {
         List<ComputerDTO> foundListComputersDTO = computerService.listAll();
 
         assertThat(foundListComputersDTO, is(empty()));
+    }
+
+    @Test
+    void whenExclusionIsCalledWithValidIdThenAComputerShouldBeDeleted() throws ComputerNotFoundException {
+        // given
+        ComputerDTO expectedDeletedComputerDTO = ComputerDTOBuilder.builder().build().toComputerDTO();
+        Computer expectedDeletedComputer = computerMapper.toModel(expectedDeletedComputerDTO);
+
+        // when
+        when(computerRepository.findById(expectedDeletedComputerDTO.getId())).thenReturn(Optional.of(expectedDeletedComputer));
+        doNothing().when(computerRepository).deleteById(expectedDeletedComputerDTO.getId());
+
+        // then
+        computerService.deleteById(expectedDeletedComputerDTO.getId());
+
+        verify(computerRepository, times(1)).findById(expectedDeletedComputerDTO.getId());
+        verify(computerRepository, times(1)).deleteById(expectedDeletedComputerDTO.getId());
     }
 
 }
